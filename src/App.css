@@ -1,0 +1,236 @@
+:root {
+  --md-sys-color-primary: #6750a4;
+  --md-sys-color-on-primary: #ffffff;
+  background-color: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font-family: "MiSans", Roboto, system-ui, -apple-system, Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+.titlebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.container {
+  padding: 24px;
+  text-align: left;
+}
+
+.date-text {
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+  margin: 0;
+}
+
+.title-text {
+  font-size: 36px;
+  font-weight: 700;
+  margin: 4px 0 0;
+  color: var(--md-sys-color-on-surface);
+}
+
+.corner-actions {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.empty-state {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 72px;
+  color: var(--md-sys-color-outline, #a2a09a);
+}
+
+.empty-text {
+  font-size: 16px;
+  color: var(--md-sys-color-on-surface-variant, #7a756b);
+  margin: 0;
+}
+
+.more-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.32);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 50;
+  animation: more-sheet-fade-in 160ms ease-out;
+}
+
+.more-sheet-overlay.closing {
+  background: rgba(0, 0, 0, 0);
+  transition: background 220ms ease-in;
+}
+
+.more-sheet {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0;
+  transform: translateY(0);
+  animation: more-sheet-slide-up 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.more-sheet.closing {
+  animation: more-sheet-slide-down 220ms cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.more-sheet-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px 16px;
+}
+
+.more-sheet-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--md3e-on-surface, #1d1b20);
+  padding: 8px 0 8px;
+  align-self: flex-start;
+  margin-left: 8px;
+}
+
+@keyframes more-sheet-fade-in {
+  from {
+    background: rgba(0, 0, 0, 0);
+  }
+  to {
+    background: rgba(0, 0, 0, 0.32);
+  }
+}
+
+@keyframes more-sheet-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes more-sheet-slide-down {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+md-dialog {
+  max-width: min(760px, 100vw - 48px) !important;
+  max-height: min(660px, 100vh - 48px) !important;
+}
+
+.hw-editor {
+  display: flex;
+  gap: 28px;
+  width: 720px;
+  max-width: 100%;
+  height: 460px;
+}
+
+.subject-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 108px;
+  justify-content: center;
+  padding-left: 4px;
+}
+
+.subject-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--md-sys-color-on-surface, #1d1b20);
+}
+
+.subject-name {
+  line-height: 1;
+}
+
+.editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 12px;
+  width: fit-content;
+}
+
+.rich-editor {
+  flex: 1;
+  min-height: 200px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 8px;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--md-sys-color-on-surface, #1d1b20);
+  outline: none;
+  overflow-y: auto;
+  background: transparent;
+}
+
+.rich-editor:focus {
+  border-color: var(--md-sys-color-primary, #6750a4);
+}
+
+.rich-editor:empty::before {
+  content: attr(data-placeholder);
+  color: var(--md-sys-color-on-surface-variant, #7a756b);
+  pointer-events: none;
+}
+
+md-fab {
+  --md-fab-container-color: var(--md-sys-color-primary);
+  --md-fab-icon-color: var(--md-sys-color-on-primary);
+  --md-fab-hover-icon-color: var(--md-sys-color-on-primary);
+  --md-fab-focus-icon-color: var(--md-sys-color-on-primary);
+  --md-fab-container-elevation: 0;
+  --md-fab-hover-container-elevation: 0;
+  --md-fab-focus-container-elevation: 0;
+}

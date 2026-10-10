@@ -1,0 +1,172 @@
+/* ==========================================================================
+ * MD3E (Material 3 Expressive) 控件库全局样式
+ * 移植自 m3e-canvas (app/globals.css + app/layout.tsx)
+ * ========================================================================== */
+
+/* Material Symbols Outlined 可变字体（与应用内 md-icon 保持一致） */
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..700,0..1,0&display=block");
+
+.md3e-root {
+  /* settle 时长与曲线：与 m3e-canvas 的 SETTLE_MS 保持一致 */
+  --m3-settle: 340ms;
+  --m3-ease: cubic-bezier(0.2, 0, 0, 1);
+  font-family: Roboto, "MiSans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Material Symbols Outlined（可变字体） */
+.msr {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  /* 在字体加载前先保留字形盒子，而不是连字文本的宽度 */
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  user-select: none;
+}
+
+/* 填充变体：选中态常用 */
+.msr[data-fill="1"] {
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+/* 控件尺寸变化时整体缓动：盒子、内边距、字号一起走 340ms */
+.m3-size-ease,
+.m3-size-ease .msr {
+  transition:
+    padding var(--m3-settle, 340ms) var(--m3-ease, cubic-bezier(0.2, 0, 0, 1)),
+    gap var(--m3-settle, 340ms) var(--m3-ease, cubic-bezier(0.2, 0, 0, 1)),
+    font-size var(--m3-settle, 340ms) var(--m3-ease, cubic-bezier(0.2, 0, 0, 1)),
+    height var(--m3-settle, 340ms) var(--m3-ease, cubic-bezier(0.2, 0, 0, 1)),
+    border-radius 220ms var(--m3-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+
+/* 涟漪：从触点扩张到覆盖整个控件（M3 pressed state layer 的色彩） */
+@keyframes md3-ripple-in {
+  from {
+    transform: scale(var(--md3-ripple-from, 0));
+    opacity: 0.16;
+  }
+  to {
+    transform: scale(1);
+    opacity: 0.12;
+  }
+}
+
+.md3-ripple {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  background: var(--md3-ripple-color, #fff);
+  transform: scale(var(--md3-ripple-from, 0));
+  opacity: 0.12;
+  animation: md3-ripple-in var(--md3-ripple-dur, 0.42s) cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+.md3-ripple.out {
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* 涟漪所在形状的裁剪层 */
+.md3-ripple-clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* 菜单（FAB Menu / Split Menu）展开收起的公共过渡 */
+.md3-sheet {
+  transition:
+    opacity var(--md3-sheet-dur, 0.28s) var(--m3-ease, cubic-bezier(0.2, 0, 0, 1)),
+    transform var(--md3-sheet-dur, 0.28s) var(--m3-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+
+.md3-fade {
+  transition: opacity var(--md3-sheet-dur, 0.28s) var(--m3-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+
+/* 用户偏好减少动效 */
+@media (prefers-reduced-motion: reduce) {
+  .md3e-root *,
+  .md3e-root {
+    transition-duration: 0.001s !important;
+    animation-duration: 0.001s !important;
+  }
+}
+
+/* ==========================================================================
+ * 交互状态：按下缩放、悬停态层、文本按钮、菜单项、图标槽、导航项、标签
+ * ========================================================================== */
+
+/* 按下时整体轻微缩小（M3 pressed state）。倍率由 --md3e-press-scale 给出 */
+.md3e-pressable:active:not([aria-disabled="true"]) {
+  transform: scale(var(--md3e-press-scale, 0.97));
+}
+
+.md3e-pressable:focus-visible {
+  outline: 2px solid var(--md3e-primary);
+  outline-offset: 2px;
+}
+
+/* 统一的悬停态层：所有可点小元素用同一个渐变遮罩 */
+.md3e-icon-slot,
+.md3e-text-action,
+.md3e-menu-item,
+.md3e-split-menu-item,
+.md3e-nav-item,
+.md3e-tab {
+  position: relative;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 140ms var(--m3-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+
+.md3e-icon-slot {
+  border-radius: 50%;
+}
+
+.md3e-icon-slot:hover,
+.md3e-text-action:hover,
+.md3e-menu-item:hover,
+.md3e-split-menu-item:hover,
+.md3e-tab:hover {
+  background: color-mix(in srgb, var(--md3e-on-surface, #1d1b20) 8%, transparent);
+}
+
+.md3e-nav-item:hover > div:first-child {
+  background: color-mix(in srgb, var(--md3e-on-surface, #1d1b20) 8%, transparent);
+}
+
+.md3e-text-action:active,
+.md3e-icon-slot:active {
+  transform: scale(0.94);
+}
+
+.md3e-menu-item:active,
+.md3e-split-menu-item:active {
+  background: color-mix(in srgb, var(--md3e-on-surface, #1d1b20) 12%, transparent);
+}
+
+/* 焦点可见性 */
+.md3e-text-action:focus-visible,
+.md3e-menu-item:focus-visible,
+.md3e-split-menu-item:focus-visible,
+.md3e-nav-item:focus-visible,
+.md3e-tab:focus-visible {
+  outline: 2px solid var(--md3e-primary);
+  outline-offset: -2px;
+}
