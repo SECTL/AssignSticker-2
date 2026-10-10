@@ -10,6 +10,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { Icon } from "./Icon";
 import { useMd3e, useWeight } from "./theme";
 import { isLightColor } from "./color";
+import { useRipples, RippleProvider, RippleShape } from "./Ripple";
 import {
   CARD_MEDIA_GAP,
   CARD_PADDING,
@@ -340,10 +341,16 @@ export function ListItem({
 }: ListItemProps) {
   const { palette } = useMd3e();
   const disc = iconFill === "none" ? null : iconFill;
+  const ripples = useRipples(!!onClick);
+  const ink = palette.onSurface;
   return (
     <div
       className={className}
       onClick={onClick}
+      onPointerDown={ripples.add}
+      onPointerCancel={ripples.end}
+      onPointerUp={ripples.end}
+      onPointerLeave={ripples.end}
       style={{
         width,
         height,
@@ -356,36 +363,42 @@ export function ListItem({
         padding: "0 16px",
         boxSizing: "border-box",
         cursor: onClick ? "pointer" : undefined,
+        position: "relative",
+        overflow: "hidden",
+        WebkitTapHighlightColor: "transparent",
         ...style,
       }}
     >
-      {icon && (
-        <div
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            background: disc ? palette[disc] : "transparent",
-            color: disc ? onToken(disc, palette) : onToken(fill, palette),
-            display: "grid",
-            placeItems: "center",
-            flex: "0 0 auto",
-          }}
-        >
-          <Icon name={icon} size={22} />
-        </div>
-      )}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        {label?.trim() && <div style={{ fontSize: 16, color: palette.onSurface, ...ellipsis }}>{label}</div>}
-        {supportingText?.trim() && (
-          <div style={{ fontSize: 13, color: palette.onSurfaceVariant, ...ellipsis }}>{supportingText}</div>
+      <RippleProvider list={ripples.list} color={ink}>
+        {icon && (
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              background: disc ? palette[disc] : "transparent",
+              color: disc ? onToken(disc, palette) : onToken(fill, palette),
+              display: "grid",
+              placeItems: "center",
+              flex: "0 0 auto",
+            }}
+          >
+            <Icon name={icon} size={22} />
+          </div>
         )}
-      </div>
-      {trailingSwitch ? (
-        <MiniSwitch on={!!checked} onChange={onCheckedChange} />
-      ) : (
-        icon2 && <Icon name={icon2} size={22} color={palette.onSurfaceVariant} />
-      )}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {label?.trim() && <div style={{ fontSize: 16, color: palette.onSurface, ...ellipsis }}>{label}</div>}
+          {supportingText?.trim() && (
+            <div style={{ fontSize: 13, color: palette.onSurfaceVariant, ...ellipsis }}>{supportingText}</div>
+          )}
+        </div>
+        {trailingSwitch ? (
+          <MiniSwitch on={!!checked} onChange={onCheckedChange} />
+        ) : (
+          icon2 && <Icon name={icon2} size={22} color={palette.onSurfaceVariant} />
+        )}
+        <RippleShape part={null} />
+      </RippleProvider>
     </div>
   );
 }

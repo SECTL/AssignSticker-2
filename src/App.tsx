@@ -1,6 +1,6 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
-import { BottomSheet, ConnectRunView, type ConnectItem } from "./component";
+import { BottomSheet, Box, ConnectRunView, Slider, type ConnectItem } from "./component";
 
 const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
 
@@ -17,10 +17,19 @@ function App() {
   const now = new Date();
   const [moreSelected, setMoreSelected] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [scale, setScale] = useState(100);
+  const [stacked, setStacked] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [subject, setSubject] = useState("语文");
   const [content, setContent] = useState("");
   const editorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onResize = () => setStacked(window.innerWidth <= 750);
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   function closeMenu() {
     setClosing(true);
@@ -148,13 +157,31 @@ function App() {
             onClick={(e) => e.stopPropagation()}
             onAnimationEnd={onSheetExit}
           >
-            <BottomSheet width={380} height={404}>
-              <div
-                className="more-sheet-content"
-                onClick={closeMenu}
-              >
+            <BottomSheet
+              width={stacked ? 380 : 720}
+              height={stacked ? 660 : 404}
+              style={{ transition: "width 220ms cubic-bezier(0.2,0,0,1), height 220ms cubic-bezier(0.2,0,0,1)" }}
+            >
+              <div className="more-sheet-content">
                 <div className="more-sheet-title">菜单</div>
-                <ConnectRunView axis="y" items={MENU_ITEMS} />
+                <div className={`more-sheet-body${stacked ? " stacked" : ""}`}>
+                  <ConnectRunView axis="y" items={MENU_ITEMS} />
+                  <Box
+                    fill="surfaceContainer"
+                    width={stacked ? 348 : 300}
+                    height={stacked ? 160 : 297}
+                    radius={28}
+                    style={{ padding: 24, boxSizing: "border-box", transition: "width 220ms cubic-bezier(0.2,0,0,1), height 220ms cubic-bezier(0.2,0,0,1)" }}
+                  >
+                    <div className="more-slider-panel">
+                      <div className="more-slider-label">作业缩放</div>
+                      <div className="more-slider-row">
+                        <Slider value={scale} onChange={setScale} width={stacked ? 244 : 196} style={{ transition: "width 220ms cubic-bezier(0.2,0,0,1)" }} />
+                        <span className="more-slider-value">{scale}%</span>
+                      </div>
+                    </div>
+                  </Box>
+                </div>
               </div>
             </BottomSheet>
           </div>

@@ -10,7 +10,7 @@
   /* settle 时长与曲线：与 m3e-canvas 的 SETTLE_MS 保持一致 */
   --m3-settle: 340ms;
   --m3-ease: cubic-bezier(0.2, 0, 0, 1);
-  font-family: Roboto, "MiSans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: "MiSans", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 /* Material Symbols Outlined（可变字体） */
