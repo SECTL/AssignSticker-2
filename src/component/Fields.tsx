@@ -178,6 +178,10 @@ export type SelectProps = {
   supportingText?: string;
   variant?: Variant;
   width?: number;
+  /** 下拉框高度，默认 56 */
+  height?: number;
+  /** 菜单向上展开（适合工具栏底部场景） */
+  menuUp?: boolean;
   style?: CSSProperties;
   className?: string;
 };
@@ -192,6 +196,8 @@ export function Select({
   supportingText,
   variant = "outlined",
   width = CONTENT_W,
+  height = 56,
+  menuUp = false,
   style,
   className,
 }: SelectProps) {
@@ -219,7 +225,7 @@ export function Select({
         onClick={() => setOpen((o) => !o)}
         style={{
           position: "relative",
-          height: 56,
+          height,
           boxSizing: "border-box",
           display: "flex",
           alignItems: "center",
@@ -289,13 +295,14 @@ export function Select({
           position: "absolute",
           left: 0,
           right: 0,
-          top: "calc(100% + 4px)",
+          ...(menuUp
+            ? { bottom: "calc(100% + 4px)", transformOrigin: "50% 100%" }
+            : { top: "calc(100% + 4px)", transformOrigin: "50% 0%" }),
           background: palette.surfaceContainer,
           color: palette.onSurface,
           borderRadius: scaleR(12),
           padding: "8px 0",
           boxShadow: "0 8px 24px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10)",
-          transformOrigin: "50% 0%",
           opacity: open ? 1 : 0,
           transform: open ? "scaleY(1)" : "scaleY(0.7)",
           pointerEvents: open ? "auto" : "none",

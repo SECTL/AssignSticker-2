@@ -5,7 +5,7 @@
  * 样式移植自 m3e-canvas `M3Node.tsx` 的对应分支。
  */
 
-import { useState, type CSSProperties } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { Icon } from "./Icon";
 import { useMd3e, useWeight } from "./theme";
 import { railSelectedLabelColor } from "./color";
@@ -437,16 +437,18 @@ export type ToolbarProps = {
   items: { icon?: string; label?: string }[];
   variant?: Variant;
   onSelect?: (index: number) => void;
+  /** 自定义尾部内容（如 Select / Combobox），渲染在按钮之后 */
+  children?: ReactNode;
   style?: CSSProperties;
   className?: string;
 };
 
-/** 悬浮工具栏：一排 48dp 图标按钮 */
-export function Toolbar({ items, variant = "tonal", onSelect, style, className }: ToolbarProps) {
+/** 悬浮工具栏：一排 48dp 图标按钮，可选尾部自定义内容 */
+export function Toolbar({ items, variant = "tonal", onSelect, children, style, className }: ToolbarProps) {
   const { palette } = useMd3e();
   const vibrant = variant === "filled";
   const n = Math.max(1, items.length);
-  const width = 16 + n * 48 + (n - 1) * 4;
+  const itemsWidth = 16 + n * 48 + (n - 1) * 4;
 
   return (
     <div
@@ -457,7 +459,7 @@ export function Toolbar({ items, variant = "tonal", onSelect, style, className }
         gap: 4,
         padding: "0 8px",
         height: 64,
-        width,
+        width: children ? "auto" : itemsWidth,
         boxSizing: "border-box",
         borderRadius: scaleR(32),
         background: vibrant ? palette.primaryContainer : palette.surfaceContainer,
@@ -484,6 +486,7 @@ export function Toolbar({ items, variant = "tonal", onSelect, style, className }
           {it.icon && <Icon name={it.icon} size={24} />}
         </span>
       ))}
+      {children}
     </div>
   );
 }

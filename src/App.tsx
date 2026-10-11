@@ -1,10 +1,26 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ComponentType } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
-import { BottomSheet, Box, ConnectRunView, Slider, type ConnectItem } from "./component";
+import {
+  BottomSheet,
+  Box,
+  ButtonGroup,
+  ConnectRunView,
+  Divider,
+  IconButton,
+  Select,
+  Slider,
+  type ConnectItem,
+  type SelectOption,
+} from "./component";
 
 const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
 
 const SUBJECTS = ["语文", "数学", "英语", "物理", "道法", "政治", "习思想", "地理", "生物"];
+
+const ASSIGN_TYPES = ["书面作业", "背诵作业", "阅读作业", "练习作业", "实践作业"];
+
+const FONT_SIZES = [12, 14, 16, 18, 20, 24, 28, 32, 36, 48];
 
 const MENU_ITEMS: ConnectItem[] = [
   { id: "m1", kind: "listItem", label: "设置", supportingText: "打开作业板设置", icon: "settings", fill: "surface", cross: 348, main: 72 },
@@ -19,10 +35,16 @@ function App() {
   const [closing, setClosing] = useState(false);
   const [scale, setScale] = useState(100);
   const [stacked, setStacked] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [subject, setSubject] = useState("语文");
-  const [content, setContent] = useState("");
-  const editorRef = useRef<HTMLDivElement>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editorClosing, setEditorClosing] = useState(false);
+  const [editorSubjectIdx, setEditorSubjectIdx] = useState(0);
+  const [editorTypeIdx, setEditorTypeIdx] = useState(0);
+  const [editorContent, setEditorContent] = useState("");
+  const [fonts, setFonts] = useState<string[]>(["MiSans"]);
+  const [fontFamilyIdx, setFontFamilyIdx] = useState(0);
+  const [fontSizeIdx, setFontSizeIdx] = useState(2);
+  const editorAreaRef = useRef<HTMLDivElement>(null);
+  const [Watermark, setWatermark] = useState<ComponentType | null>(null);
 
   useEffect(() => {
     const onResize = () => setStacked(window.innerWidth <= 750);
@@ -30,6 +52,66 @@ function App() {
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
+
+  useEffect(() => {
+    import("./Watermark")
+      .then((m) => setWatermark(() => m.default))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    invoke<string[]>("get_system_fonts")
+      .then((list) => { if (list.length > 0) setFonts(list); })
+      .catch(() => setFonts(["MiSans", "Arial", "Helvetica", "PingFang SC", "Times New Roman", "Georgia"]));
+  }, []);
+
+  function execFmt(cmd: string) {
+    editorAreaRef.current?.focus();
+    document.execCommand(cmd);
+    setEditorContent(editorAreaRef.current?.innerText ?? "");
+  }
+
+  function applyFontFamily(idx: number) {
+    setFontFamilyIdx(idx);
+    editorAreaRef.current?.focus();
+    document.execCommand("fontName", false, fonts[idx] ?? "MiSans");
+    setEditorContent(editorAreaRef.current?.innerText ?? "");
+  }
+
+  function applyFontSize(idx: number) {
+    setFontSizeIdx(idx);
+    const size = FONT_SIZES[idx];
+    editorAreaRef.current?.focus();
+    document.execCommand("fontSize", false, "7");
+    const editor = editorAreaRef.current;
+    if (editor) {
+      editor.querySelectorAll('font[size="7"]').forEach((el) => {
+        const span = document.createElement("span");
+        span.style.fontSize = `${size}px`;
+        while (el.firstChild) span.appendChild(el.firstChild);
+        el.parentNode?.replaceChild(span, el);
+      });
+    }
+    setEditorContent(editorAreaRef.current?.innerText ?? "");
+  }
+
+  function insertImage() {
+    const url = window.prompt("输入图片链接");
+    if (url) {
+      editorAreaRef.current?.focus();
+      document.execCommand("insertImage", false, url);
+      setEditorContent(editorAreaRef.current?.innerText ?? "");
+    }
+  }
+
+  function insertLink() {
+    const url = window.prompt("输入链接地址");
+    if (url) {
+      editorAreaRef.current?.focus();
+      document.execCommand("createLink", false, url);
+      setEditorContent(editorAreaRef.current?.innerText ?? "");
+    }
+  }
 
   function closeMenu() {
     setClosing(true);
@@ -43,22 +125,28 @@ function App() {
   }
 
   function openEditor() {
-    setSubject("语文");
-    setContent("");
-    if (editorRef.current) {
-      editorRef.current.innerHTML = "";
+    setEditorSubjectIdx(0);
+    setEditorTypeIdx(0);
+    setEditorContent("");
+    if (editorAreaRef.current) {
+      editorAreaRef.current.innerHTML = "";
     }
-    setDialogOpen(true);
+    setEditorOpen(true);
   }
 
-  function execCommand(cmd: string) {
-    editorRef.current?.focus();
-    document.execCommand(cmd);
-    setContent(editorRef.current?.innerText ?? "");
+  function closeEditor() {
+    setEditorClosing(true);
+  }
+
+  function onEditorExit(e: React.AnimationEvent<HTMLDivElement>) {
+    if (e.animationName === "editor-sheet-slide-down") {
+      setEditorOpen(false);
+      setEditorClosing(false);
+    }
   }
 
   function handleAssign() {
-    setDialogOpen(false);
+    setEditorClosing(true);
   }
 
   return (
@@ -76,76 +164,88 @@ function App() {
         </p>
       </div>
 
-      <md-dialog
-        open={dialogOpen}
-        onClosed={() => setDialogOpen(false)}
-      >
-        <div slot="headline">布置作业</div>
-
-        <div slot="content" className="hw-editor">
-          <div className="subject-list">
-            {SUBJECTS.map((s) => (
-              <label className="subject-item" key={s}>
-                <md-radio
-                  value={s}
-                  checked={subject === s}
-                  onInput={() => setSubject(s)}
-                />
-                <span className="subject-name">{s}</span>
-              </label>
-            ))}
-          </div>
-
-          <md-divider vertical></md-divider>
-
-          <div className="editor">
-            <div className="toolbar">
-              <md-icon-button
-                aria-label="粗体"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => execCommand("bold")}
-              >
-                <md-icon>format_bold</md-icon>
-              </md-icon-button>
-              <md-icon-button
-                aria-label="斜体"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => execCommand("italic")}
-              >
-                <md-icon>format_italic</md-icon>
-              </md-icon-button>
-              <md-icon-button
-                aria-label="删除线"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => execCommand("strikeThrough")}
-              >
-                <md-icon>format_strikethrough</md-icon>
-              </md-icon-button>
-              <md-icon-button
-                aria-label="下划线"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => execCommand("underline")}
-              >
-                <md-icon>format_underline</md-icon>
-              </md-icon-button>
-            </div>
-            <div
-              className="rich-editor"
-              ref={editorRef}
-              contentEditable
-              data-placeholder="在此输入作业内容..."
-              onInput={() => setContent(editorRef.current?.innerText ?? "")}
-            ></div>
+      {editorOpen && (
+        <div
+          className={`editor-sheet-overlay${editorClosing ? " closing" : ""}`}
+          onClick={closeEditor}
+        >
+          <div
+            className={`editor-sheet${editorClosing ? " closing" : ""}`}
+            onClick={(e) => e.stopPropagation()}
+            onAnimationEnd={onEditorExit}
+          >
+            <BottomSheet width={stacked ? 420 : 840} height={stacked ? 680 : 620}>
+              <div className="editor-sheet-content">
+                <div className="editor-sheet-title">布置作业</div>
+                <div className="editor-sheet-row">
+                  <Select
+                    label="科目"
+                    options={SUBJECTS.map((s) => ({ label: s, value: s })) as SelectOption[]}
+                    selected={editorSubjectIdx}
+                    onSelect={(i) => setEditorSubjectIdx(i)}
+                    width={stacked ? 388 : 388}
+                  />
+                  <Select
+                    label="作业类型"
+                    options={ASSIGN_TYPES.map((t) => ({ label: t, value: t })) as SelectOption[]}
+                    selected={editorTypeIdx}
+                    onSelect={(i) => setEditorTypeIdx(i)}
+                    width={stacked ? 388 : 388}
+                  />
+                </div>
+                <Divider width={stacked ? 388 : 792} />
+                <div className="editor-toolbar-top">
+                  <ButtonGroup>
+                    <IconButton icon="format_bold" toggle title="粗体" size={40} onClick={() => execFmt("bold")} />
+                    <IconButton icon="format_strikethrough" toggle title="删除线" size={40} onClick={() => execFmt("strikeThrough")} />
+                    <IconButton icon="format_underlined" toggle title="下划线" size={40} onClick={() => execFmt("underline")} />
+                    <IconButton icon="format_italic" toggle title="斜体" size={40} onClick={() => execFmt("italic")} />
+                    <IconButton icon="image" title="插入图片" size={40} onClick={insertImage} />
+                    <IconButton icon="link" title="链接" size={40} onClick={insertLink} />
+                  </ButtonGroup>
+                  <Select
+                    label="字体"
+                    options={fonts.map((f) => ({ label: f, value: f })) as SelectOption[]}
+                    selected={fontFamilyIdx}
+                    onSelect={(i) => applyFontFamily(i)}
+                    width={stacked ? 140 : 200}
+                    height={44}
+                  />
+                  <Select
+                    label="字号"
+                    options={FONT_SIZES.map((s) => ({ label: `${s}px`, value: String(s) })) as SelectOption[]}
+                    selected={fontSizeIdx}
+                    onSelect={(i) => applyFontSize(i)}
+                    width={100}
+                    height={44}
+                  />
+                </div>
+                <div className="editor-area">
+                  <div
+                    className="editor-area-input"
+                    ref={editorAreaRef}
+                    contentEditable
+                    data-placeholder="在此输入作业内容..."
+                    onInput={() => setEditorContent(editorAreaRef.current?.innerText ?? "")}
+                  ></div>
+                </div>
+                <div className="editor-actions">
+                  <button className="editor-btn editor-btn-text" onClick={closeEditor}>
+                    取消
+                  </button>
+                  <button
+                    className="editor-btn editor-btn-filled"
+                    disabled={!editorContent.trim()}
+                    onClick={handleAssign}
+                  >
+                    布置
+                  </button>
+                </div>
+              </div>
+            </BottomSheet>
           </div>
         </div>
-
-        <div slot="actions">
-          <md-text-button onClick={() => setDialogOpen(false)}>取消</md-text-button>
-          <md-filled-button disabled={!subject || !content.trim()} onClick={handleAssign}>
-            布置
-          </md-filled-button>
-        </div>
-      </md-dialog>
+      )}
 
       {moreSelected && (
         <div
@@ -202,6 +302,8 @@ function App() {
           <md-icon slot="selected">more_vert</md-icon>
         </md-icon-button>
       </div>
+
+      {Watermark && <Watermark />}
     </main>
   );
 }

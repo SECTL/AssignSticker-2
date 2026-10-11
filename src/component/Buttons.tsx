@@ -291,7 +291,7 @@ export function ExtendedFab({
   );
 }
 
-/** 一组按钮连成的紧邻按钮组：外圆内方 */
+/** 一组按钮连成的紧邻按钮组：外圆内方，整组吸附缩放 */
 export function ButtonGroup({
   children,
   gap = 3,
@@ -302,7 +302,18 @@ export function ButtonGroup({
   style?: CSSProperties;
 }) {
   return (
-    <div style={{ display: "inline-flex", alignItems: "center", gap, ...style }}>{children}</div>
+    <div
+      className="m3-size-ease"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap,
+        ["--md3e-press-scale" as string]: 0.96,
+        ...style,
+      }}
+    >
+      {children}
+    </div>
   );
 }
 
